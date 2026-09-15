@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adaptive Human Twin Lab</title>
+    <meta name="description" content="A static 3D human performance and environment simulator." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="main-stage">
+        <header class="stage-header">
+          <div class="brand-line"><span class="brand-mark">AHT</span><div><p class="eyebrow">Adaptive Human Twin</p><h1>Body systems under pressure</h1></div></div>
+          <div class="capture-status"><span>World capture</span><strong id="environment-asset-status">Loading environment</strong></div>
+        </header>
+
+        <section class="viewer-card">
+          <div id="scene-root" class="scene-root" aria-label="Interactive 3D human and environment view"></div>
+          <div class="viewer-topbar"><div><span class="live-dot"></span><strong id="phase-pill">Idle</strong></div><span>Drag to orbit · Scroll to zoom</span></div>
+          <div class="vital-rail" aria-label="Live athlete vitals">
+            <article class="vital-card"><span>Core</span><strong id="core-temp-value">37.0 C</strong></article>
+            <article class="vital-card"><span>Cognition</span><strong id="cognition-value">100</strong></article>
+            <article class="vital-card"><span>Endurance</span><strong id="endurance-value">100</strong></article>
+          </div>
+        </section>
+
+        <details class="dashboard-card analysis-drawer">
+          <summary><span><small>Live analysis</small>Performance, environment, and feedback data</span><span class="drawer-action">Open data</span></summary>
+          <div class="analysis-grid">
+            <section><div class="card-header"><div><p class="eyebrow">Human state</p><h2>Performance</h2></div></div><div id="metric-grid" class="metric-grid"></div></section>
+            <section><div class="card-header"><div><p class="eyebrow">Environment</p><h2>Live conditions</h2></div></div><div id="environment-state-grid" class="metric-grid"></div></section>
+            <section><div class="card-header"><div><p class="eyebrow">Adaptive layer</p><h2>Feedback response</h2></div></div><div id="environment-grid" class="metric-grid"></div></section>
+            <section class="chart-stack"><div><p class="eyebrow">Time series</p><h2>Performance trend</h2></div><canvas id="history-chart" width="640" height="260"></canvas><div class="chart-heading"><p class="eyebrow">Body zones</p><h2>Heat distribution</h2></div><canvas id="heat-chart" width="640" height="180"></canvas></section>
+          </div>
+        </details>
+      </main>
+
+      <aside class="control-panel" aria-label="Simulation controls">
+        <div class="control-header"><div><p class="eyebrow">Control station</p><h2>Shape the trial</h2></div><span class="local-badge">Local</span></div>
+
+        <section class="panel-section primary-controls">
+          <label class="field compact-field"><span>Athlete</span><select id="athlete-select"></select></label>
+          <div id="athlete-summary" class="summary-card"></div>
+          <div class="button-row"><button id="play-toggle" class="primary-button">Start trial</button><button id="reset-button" class="secondary-button">Reset</button></div>
+          <label class="field range-field"><span>Scenario speed <strong id="speed-value">1.0x</strong></span><input id="speed-range" type="range" min="0.5" max="3" step="0.5" value="1" /></label>
+          <label class="field range-field"><span>Movement speed <strong id="motion-value">1.00x</strong></span><input id="motion-range" type="range" min="0.1" max="1" step="0.05" value="1" /></label>
+        </section>
+
+        <details class="panel-section" open>
+          <summary><span>Anatomy layers</span><small>Separate or combine</small></summary>
+          <div class="toggle-grid">
+            <label class="layer-chip"><input id="layer-skin" type="checkbox" checked /><span>Skin</span></label>
+            <label class="layer-chip"><input id="layer-neural" type="checkbox" checked /><span>Nerves + brain</span></label>
+            <label class="layer-chip"><input id="layer-joints" type="checkbox" checked /><span>Joints</span></label>
+            <label class="layer-chip"><input id="layer-skeleton" type="checkbox" checked /><span>Skeleton</span></label>
+          </div>
+        </details>
+
+        <details class="panel-section" open><summary><span>Environments</span><small>Three per athlete</small></summary><div id="segment-list" class="segment-list"></div></details>
+
+        <details class="panel-section">
+          <summary><span>Environment controls</span><small>Modify the world</small></summary>
+          <div class="control-stack">
+            <label class="field range-field"><span>Air temperature <strong id="env-temperature-value">0 C</strong></span><input id="env-temperature" type="range" min="-15" max="15" step="1" value="0" /></label>
+            <label class="field range-field"><span>Humidity <strong id="env-humidity-value">0%</strong></span><input id="env-humidity" type="range" min="-0.4" max="0.4" step="0.05" value="0" /></label>
+            <label class="field range-field"><span>Wind <strong id="env-wind-value">0%</strong></span><input id="env-wind" type="range" min="-0.4" max="0.5" step="0.05" value="0" /></label>
+            <label class="field range-field"><span>Air quality <strong id="env-air-value">0%</strong></span><input id="env-air" type="range" min="-0.4" max="0.3" step="0.05" value="0" /></label>
+            <label class="field range-field"><span>Altitude <strong id="env-altitude-value">0 m</strong></span><input id="env-altitude" type="range" min="-500" max="1500" step="50" value="0" /></label>
+            <label class="field range-field"><span>Solar load <strong id="env-solar-value">0%</strong></span><input id="env-solar" type="range" min="-0.5" max="0.5" step="0.05" value="0" /></label>
+            <label class="field range-field"><span>Precipitation <strong id="env-precipitation-value">0%</strong></span><input id="env-precipitation" type="range" min="0" max="1" step="0.05" value="0" /></label>
+            <label class="field range-field"><span>Terrain grade <strong id="env-grade-value">0%</strong></span><input id="env-grade" type="range" min="-0.05" max="0.15" step="0.01" value="0" /></label>
+          </div>
+        </details>
+
+        <details class="panel-section">
+          <summary><span>Human condition</span><small>Set baseline state</small></summary>
+          <div class="control-stack">
+            <label class="field range-field"><span>Hydration <strong id="human-hydration-value">100%</strong></span><input id="human-hydration" type="range" min="0.4" max="1" step="0.05" value="1" /></label>
+            <label class="field range-field"><span>Fatigue <strong id="human-fatigue-value">8%</strong></span><input id="human-fatigue" type="range" min="0" max="1" step="0.05" value="0.08" /></label>
+            <label class="field range-field"><span>Glycogen <strong id="human-glycogen-value">100%</strong></span><input id="human-glycogen" type="range" min="0.2" max="1" step="0.05" value="1" /></label>
+            <label class="field range-field"><span>Core temperature bias <strong id="human-core-bias-value">0.0 C</strong></span><input id="human-core-bias" type="range" min="-1" max="1" step="0.1" value="0" /></label>
+          </div>
+        </details>
+
+        <details class="panel-section">
+          <summary><span>Adaptive loop</span><small>Human to environment</small></summary>
+          <label class="toggle-field"><span>Environment feedback</span><input id="feedback-toggle" type="checkbox" checked /></label>
+          <label class="field range-field"><span>Controller intensity <strong id="feedback-intensity-value">0.65</strong></span><input id="feedback-intensity" type="range" min="0" max="1" step="0.05" value="0.65" /></label>
+          <label class="field range-field"><span>Response speed <strong id="feedback-responsiveness-value">0.55</strong></span><input id="feedback-responsiveness" type="range" min="0" max="1" step="0.05" value="0.55" /></label>
+        </details>
+
+        <details class="panel-section">
+          <summary><span>Body model</span><small>Built-in or custom</small></summary>
+          <div id="scan-status" class="summary-card" aria-live="polite">Loading built-in human model.</div>
+          <label class="field"><span>Replace with GLB or GLTF</span><input id="scan-file" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" /></label>
+          <div class="button-row"><button id="apply-scan" class="primary-button">Use model</button><button id="clear-scan" class="secondary-button">Use default</button></div>
+          <p class="source-note">Default model: CC0 Quaternius human, prepared by UMRAM Bilkent. <a href="https://sketchfab.com/3d-models/human-a75f10c50fb44a70a1b04bcb49f3d71f" target="_blank" rel="noreferrer">Full-resolution Thunk3D scan source</a>.</p>
+        </details>
+      </aside>
+    </div>
+
+    <template id="metric-template"><article class="metric-card"><span class="metric-label"></span><strong class="metric-value"></strong><p class="metric-detail"></p></article></template>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
