@@ -238,7 +238,7 @@ function prepareObj(scene, targetHeight) {
       opacity: 0.97,
     });
     material.userData.gaitTime = gaitTime;
-    material.customProgramCacheKey = () => "running-gait-v1";
+    material.customProgramCacheKey = () => "running-gait-v2";
     material.onBeforeCompile = (shader) => {
       shader.uniforms.uGaitTime = gaitTime;
       shader.vertexShader = `uniform float uGaitTime;\n${shader.vertexShader}`.replace(
@@ -247,10 +247,11 @@ function prepareObj(scene, targetHeight) {
           vec3 transformed = vec3(position);
           float stride = sin(uGaitTime * 8.4);
           float side = position.x < 0.0 ? -1.0 : 1.0;
+          float legPhase = side * stride;
 
           float legWeight = (1.0 - smoothstep(-4.0, 10.0, position.z))
             * smoothstep(5.0, 16.0, abs(position.x));
-          float legAngle = side * stride * 0.19 * legWeight;
+          float legAngle = legPhase * 0.34 * legWeight;
           vec2 legOffset = vec2(transformed.y, transformed.z + 8.0);
           float legCos = cos(legAngle);
           float legSin = sin(legAngle);
@@ -259,12 +260,13 @@ function prepareObj(scene, targetHeight) {
           transformed.z = mix(transformed.z, legOffset.y - 8.0, legWeight);
 
           float footWeight = 1.0 - smoothstep(-72.0, -54.0, position.z);
-          transformed.z += max(0.0, side * stride) * 7.5 * footWeight;
+          transformed.y += legPhase * 3.5 * footWeight;
+          transformed.z += max(0.0, legPhase) * 5.5 * footWeight;
 
           float armWeight = smoothstep(12.0, 24.0, abs(position.x))
             * smoothstep(8.0, 28.0, position.z)
             * (1.0 - smoothstep(72.0, 88.0, position.z));
-          float armAngle = -side * stride * 0.24 * armWeight;
+          float armAngle = -legPhase * 0.24 * armWeight;
           vec2 armOffset = vec2(transformed.y, transformed.z - 48.0);
           float armCos = cos(armAngle);
           float armSin = sin(armAngle);
@@ -675,7 +677,7 @@ export function createHumanScene(container) {
           });
           scanRoot.rotation.y = Math.sin(gaitTime * 0.65) * 0.045;
           scanRoot.rotation.z = (1 - state.stability) * 0.06;
-          scanRoot.position.y = (scanRoot.userData.baseY ?? 0) + Math.abs(Math.sin(gaitTime * 8.4)) * 0.018;
+          scanRoot.position.y = scanRoot.userData.baseY ?? 0;
         }
       }
 

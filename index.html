@@ -18,8 +18,8 @@
     <div class="app-shell">
       <main class="main-stage">
         <header class="stage-header">
-          <div class="brand-line"><span class="brand-mark">AHT</span><div><p class="eyebrow">Adaptive Human Twin</p><h1>Body systems under pressure</h1></div></div>
-          <div class="capture-status"><span>World capture</span><strong id="environment-asset-status">Loading environment</strong></div>
+          <div class="brand-line"><span class="brand-mark">AHT</span><div><p class="eyebrow">Runner response simulator</p><h1>Environment stress test</h1></div></div>
+          <div class="capture-status"><span>Current scene</span><strong id="environment-asset-status">Loading environment</strong></div>
         </header>
 
         <section class="viewer-card">
@@ -33,7 +33,7 @@
         </section>
 
         <details class="dashboard-card analysis-drawer">
-          <summary><span><small>Live analysis</small>Performance, environment, and feedback data</span><span class="drawer-action">Open data</span></summary>
+          <summary><span><small>Test results</small>Performance, environment, and feedback</span><span class="drawer-action">View data</span></summary>
           <div class="analysis-grid">
             <section><div class="card-header"><div><p class="eyebrow">Human state</p><h2>Performance</h2></div></div><div id="metric-grid" class="metric-grid"></div></section>
             <section><div class="card-header"><div><p class="eyebrow">Environment</p><h2>Live conditions</h2></div></div><div id="environment-state-grid" class="metric-grid"></div></section>
@@ -44,30 +44,24 @@
       </main>
 
       <aside class="control-panel" aria-label="Simulation controls">
-        <div class="control-header"><div><p class="eyebrow">Control station</p><h2>Shape the trial</h2></div><span class="local-badge">Local</span></div>
+        <div class="control-header"><div><p class="eyebrow">Runner test</p><h2>Set up the run</h2></div><span class="local-badge">Local simulation</span></div>
 
         <section class="panel-section primary-controls">
-          <div class="runner-test-label"><span>Active test</span><strong>Long-Distance Runner</strong></div>
+          <div class="runner-test-label"><span>Test subject</span><strong>Long-Distance Runner</strong></div>
           <div id="athlete-summary" class="summary-card"></div>
-          <div class="button-row"><button id="play-toggle" class="primary-button">Start trial</button><button id="reset-button" class="secondary-button">Reset</button></div>
-          <label class="field range-field"><span>Scenario speed <strong id="speed-value">1.0x</strong></span><input id="speed-range" type="range" min="0.5" max="3" step="0.5" value="1" /></label>
-          <label class="field range-field"><span>Movement speed <strong id="motion-value">1.00x</strong></span><input id="motion-range" type="range" min="0.1" max="1" step="0.05" value="1" /></label>
+          <p class="setup-note">Choose an environment, then start the test. Live results appear beside the runner.</p>
+          <div class="section-label"><span>Environment</span><small>Choose one</small></div>
+          <div id="segment-list" class="segment-list"></div>
+          <div class="button-row"><button id="play-toggle" class="primary-button">Start test</button><button id="reset-button" class="secondary-button">Reset</button></div>
+          <details class="playback-options">
+            <summary>Playback speed</summary>
+            <label class="field range-field"><span>Test speed <strong id="speed-value">1.0x</strong></span><input id="speed-range" type="range" min="0.5" max="3" step="0.5" value="1" /></label>
+            <label class="field range-field"><span>Runner motion <strong id="motion-value">1.00x</strong></span><input id="motion-range" type="range" min="0.1" max="1" step="0.05" value="1" /></label>
+          </details>
         </section>
 
-        <details class="panel-section" open>
-          <summary><span>Anatomy layers</span><small>Separate or combine</small></summary>
-          <div class="toggle-grid">
-            <label class="layer-chip"><input id="layer-skin" type="checkbox" checked /><span>Skin</span></label>
-            <label class="layer-chip"><input id="layer-neural" type="checkbox" checked /><span>Nerves + brain</span></label>
-            <label class="layer-chip"><input id="layer-joints" type="checkbox" checked /><span>Joints</span></label>
-            <label class="layer-chip"><input id="layer-skeleton" type="checkbox" checked /><span>Skeleton</span></label>
-          </div>
-        </details>
-
-        <details class="panel-section" open><summary><span>Environments</span><small>Three per athlete</small></summary><div id="segment-list" class="segment-list"></div></details>
-
         <details class="panel-section">
-          <summary><span>Environment controls</span><small>Modify the world</small></summary>
+          <summary><span>Fine-tune environment</span><small>Optional</small></summary>
           <div class="control-stack">
             <label class="field range-field"><span>Air temperature <strong id="env-temperature-value">0 C</strong></span><input id="env-temperature" type="range" min="-15" max="15" step="1" value="0" /></label>
             <label class="field range-field"><span>Humidity <strong id="env-humidity-value">0%</strong></span><input id="env-humidity" type="range" min="-0.4" max="0.4" step="0.05" value="0" /></label>
@@ -81,7 +75,7 @@
         </details>
 
         <details class="panel-section">
-          <summary><span>Human condition</span><small>Set baseline state</small></summary>
+          <summary><span>Runner starting condition</span><small>Optional</small></summary>
           <div class="control-stack">
             <label class="field range-field"><span>Hydration <strong id="human-hydration-value">100%</strong></span><input id="human-hydration" type="range" min="0.4" max="1" step="0.05" value="1" /></label>
             <label class="field range-field"><span>Fatigue <strong id="human-fatigue-value">8%</strong></span><input id="human-fatigue" type="range" min="0" max="1" step="0.05" value="0.08" /></label>
@@ -91,14 +85,14 @@
         </details>
 
         <details class="panel-section">
-          <summary><span>Adaptive loop</span><small>Human to environment</small></summary>
+          <summary><span>Feedback system</span><small>Automatic response</small></summary>
           <label class="toggle-field"><span>Environment feedback</span><input id="feedback-toggle" type="checkbox" checked /></label>
           <label class="field range-field"><span>Controller intensity <strong id="feedback-intensity-value">0.65</strong></span><input id="feedback-intensity" type="range" min="0" max="1" step="0.05" value="0.65" /></label>
           <label class="field range-field"><span>Response speed <strong id="feedback-responsiveness-value">0.55</strong></span><input id="feedback-responsiveness" type="range" min="0" max="1" step="0.05" value="0.55" /></label>
         </details>
 
         <details class="panel-section">
-          <summary><span>Body model</span><small>Built-in or custom</small></summary>
+          <summary><span>Replace body model</span><small>Advanced</small></summary>
           <div id="scan-status" class="summary-card" aria-live="polite">Loading built-in human model.</div>
           <label class="field"><span>Replace with OBJ, GLB, or GLTF</span><input id="scan-file" type="file" accept=".obj,.glb,.gltf,model/gltf-binary,model/gltf+json" /></label>
           <div class="button-row"><button id="apply-scan" class="primary-button">Use model</button><button id="clear-scan" class="secondary-button">Use default</button></div>

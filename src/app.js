@@ -25,10 +25,6 @@ const feedbackIntensity = document.querySelector("#feedback-intensity");
 const feedbackIntensityValue = document.querySelector("#feedback-intensity-value");
 const feedbackResponsiveness = document.querySelector("#feedback-responsiveness");
 const feedbackResponsivenessValue = document.querySelector("#feedback-responsiveness-value");
-const skinLayer = document.querySelector("#layer-skin");
-const neuralLayer = document.querySelector("#layer-neural");
-const jointsLayer = document.querySelector("#layer-joints");
-const skeletonLayer = document.querySelector("#layer-skeleton");
 const segmentList = document.querySelector("#segment-list");
 const phasePill = document.querySelector("#phase-pill");
 const metricGrid = document.querySelector("#metric-grid");
@@ -80,7 +76,7 @@ let playbackSpeed = 1;
 let motionScale = 1;
 let motionClock = 0;
 let lastFrame = performance.now();
-let layerState = { skin: true, neural: true, joints: true, skeleton: true };
+const layerState = { skin: true, neural: true, joints: true, skeleton: true };
 
 function activeAthlete() {
   return athletes[0];
@@ -216,15 +212,6 @@ function syncHuman() {
   simulation.setHumanControls(next);
 }
 
-function syncLayers() {
-  layerState = {
-    skin: skinLayer.checked,
-    neural: neuralLayer.checked,
-    joints: jointsLayer.checked,
-    skeleton: skeletonLayer.checked,
-  };
-}
-
 function syncPlayback() {
   playbackSpeed = Number(speedRange.value);
   motionScale = Number(motionRange.value);
@@ -265,17 +252,18 @@ function animationLoop(now) {
 
 playToggle.addEventListener("click", () => {
   isPlaying = !isPlaying;
-  playToggle.textContent = isPlaying ? "Pause" : "Start";
+  playToggle.textContent = isPlaying ? "Pause test" : "Start test";
 });
 
 resetButton.addEventListener("click", () => {
+  isPlaying = false;
+  playToggle.textContent = "Start test";
   simulation.reset();
   motionClock = 0;
   syncModifiers();
   syncFeedback();
   syncEnvironment();
   syncHuman();
-  syncLayers();
   renderAll();
 });
 
@@ -317,13 +305,6 @@ clearScanButton.addEventListener("click", () => {
   });
 });
 
-[skinLayer, neuralLayer, jointsLayer, skeletonLayer].forEach((input) => {
-  input.addEventListener("input", () => {
-    syncLayers();
-    renderAll();
-  });
-});
-
 setAthleteDefaults(athletes[0]);
 simulation.reset();
 syncPlayback();
@@ -331,7 +312,6 @@ syncModifiers();
 syncFeedback();
 syncEnvironment();
 syncHuman();
-syncLayers();
 renderAll();
 humanScene.loadBuiltInHuman(athletes).then(() => renderAll());
 requestAnimationFrame(animationLoop);

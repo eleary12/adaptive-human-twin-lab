@@ -91,7 +91,7 @@ const athleteProfiles = [
     id: "runner",
     name: "Long-Distance Runner",
     sport: "Endurance Running",
-    summary: "Lean, high-aerobic profile with efficient thermal regulation and long stride economy across varied terrain.",
+    summary: "An endurance runner tested across heat, altitude, and humidity while the system tracks physical and cognitive response.",
     scene: "trail",
     physiology: {
       bodyScale: 0.98,
