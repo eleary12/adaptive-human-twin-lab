@@ -9,7 +9,6 @@ import {
   summarizeEnvironment,
 } from "./simulation.js";
 
-const athleteSelect = document.querySelector("#athlete-select");
 const athleteSummary = document.querySelector("#athlete-summary");
 const scanStatus = document.querySelector("#scan-status");
 const scanFile = document.querySelector("#scan-file");
@@ -84,16 +83,7 @@ let lastFrame = performance.now();
 let layerState = { skin: true, neural: true, joints: true, skeleton: true };
 
 function activeAthlete() {
-  return athletes.find((athlete) => athlete.id === athleteSelect.value) ?? athletes[0];
-}
-
-function populateAthleteOptions() {
-  athletes.forEach((athlete) => {
-    const option = document.createElement("option");
-    option.value = athlete.id;
-    option.textContent = athlete.name;
-    athleteSelect.append(option);
-  });
+  return athletes[0];
 }
 
 function renderMetricCards(container, metrics) {
@@ -253,7 +243,7 @@ function setAthleteDefaults(athlete) {
 async function applySelectedScan() {
   const file = scanFile.files?.[0];
   if (!file) {
-    scanStatus.textContent = "Choose a GLB or GLTF athlete scan first.";
+    scanStatus.textContent = "Choose an OBJ, GLB, or GLTF body model first.";
     return;
   }
   scanStatus.textContent = "Importing scan...";
@@ -272,18 +262,6 @@ function animationLoop(now) {
   renderAll();
   requestAnimationFrame(animationLoop);
 }
-
-athleteSelect.addEventListener("change", () => {
-  const athlete = activeAthlete();
-  simulation.setAthlete(athlete);
-  setAthleteDefaults(athlete);
-  syncModifiers();
-  syncFeedback();
-  syncEnvironment();
-  syncHuman();
-  syncLayers();
-  renderAll();
-});
 
 playToggle.addEventListener("click", () => {
   isPlaying = !isPlaying;
@@ -346,8 +324,6 @@ clearScanButton.addEventListener("click", () => {
   });
 });
 
-populateAthleteOptions();
-athleteSelect.value = athletes[0].id;
 setAthleteDefaults(athletes[0]);
 simulation.reset();
 syncPlayback();

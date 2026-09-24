@@ -31,7 +31,7 @@ Then open `http://localhost:8000`.
 
 Use the `Body model` panel to replace the built-in human with an `OBJ`, `GLB`, or `GLTF` model for the currently selected athlete. Models are automatically normalized to athlete height; Z-up OBJ files are rotated into the viewer's Y-up coordinate system. See `ASSET_ATTRIBUTION.md` for bundled sources.
 
-The default OBJ is a static running pose. The earlier rigged CC0 body remains in `assets/models/human.glb` as a fallback source for future animation work.
+The default OBJ is a static running pose animated in the browser with a lightweight GPU-driven gait deformation.
 
 ## GitHub Pages deployment
 
@@ -49,7 +49,7 @@ The `.nojekyll` marker ensures GitHub Pages serves the asset folders directly wi
 - `src/simulation.js` contains the agent-based environmental response model
 - `src/humanModel.js` builds and animates the 3D human
 - `src/charts.js` renders the lightweight dashboard charts
-- `assets/` contains the local human model and nine environment captures
+- `assets/` contains the local human model and environment captures
 - `ASSET_ATTRIBUTION.md` records source and license details
 
 ## Notes

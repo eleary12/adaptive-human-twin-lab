@@ -6,20 +6,10 @@ import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { clone as cloneSkeleton } from "three/addons/utils/SkeletonUtils.js";
 
 const environmentCaptures = {
-  rower: [
-    { path: "./assets/environments/rower-snow.hdr", label: "Frozen alpine lake" },
-    { path: "./assets/environments/rower-fall.hdr", label: "Autumn lakeside" },
-    { path: "./assets/environments/rower-summer.hdr", label: "Summer lakeside" },
-  ],
   runner: [
     { path: "./assets/environments/runner-desert.hdr", label: "Goegap desert" },
     { path: "./assets/environments/runner-mountain.hdr", label: "Alpine field" },
     { path: "./assets/environments/runner-humid.hdr", label: "Humid flat farmland" },
-  ],
-  sprinter: [
-    { path: "./assets/environments/sprinter-rain.hdr", label: "Overcast wet field" },
-    { path: "./assets/environments/sprinter-summer.hdr", label: "Clear track landscape" },
-    { path: "./assets/environments/sprinter-winter.hdr", label: "Snow field" },
   ],
 };
 
@@ -468,7 +458,7 @@ export function createHumanScene(container) {
       });
     });
     if (cached.clips?.length) {
-      const preferredClip = { rower: "Working", runner: "Walk", sprinter: "Run" }[athleteId];
+      const preferredClip = "Walk";
       const clip = cached.clips.find((item) => item.name.includes(preferredClip)) ?? cached.clips[0];
       activeScanMixer = new THREE.AnimationMixer(instance);
       activeScanMixer.clipAction(clip).play();
@@ -679,7 +669,7 @@ export function createHumanScene(container) {
         const scanRoot = scanGroup.children[0];
         if (scanRoot) {
           const gaitTime = state.motionTime ?? state.time;
-          activeScanMixer?.setTime(gaitTime * (state.athlete.id === "sprinter" ? 1.35 : 0.85));
+          activeScanMixer?.setTime(gaitTime * 0.85);
           activeGaitUniforms.forEach((uniform) => {
             uniform.value = gaitTime;
           });

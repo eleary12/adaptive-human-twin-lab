@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Adaptive Human Twin Lab</title>
     <meta name="description" content="A static 3D human performance and environment simulator." />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
@@ -46,7 +47,6 @@
         <div class="control-header"><div><p class="eyebrow">Control station</p><h2>Shape the trial</h2></div><span class="local-badge">Local</span></div>
 
         <section class="panel-section primary-controls">
-          <select id="athlete-select" hidden aria-label="Athlete"></select>
           <div class="runner-test-label"><span>Active test</span><strong>Long-Distance Runner</strong></div>
           <div id="athlete-summary" class="summary-card"></div>
           <div class="button-row"><button id="play-toggle" class="primary-button">Start trial</button><button id="reset-button" class="secondary-button">Reset</button></div>
@@ -102,7 +102,7 @@
           <div id="scan-status" class="summary-card" aria-live="polite">Loading built-in human model.</div>
           <label class="field"><span>Replace with OBJ, GLB, or GLTF</span><input id="scan-file" type="file" accept=".obj,.glb,.gltf,model/gltf-binary,model/gltf+json" /></label>
           <div class="button-row"><button id="apply-scan" class="primary-button">Use model</button><button id="clear-scan" class="secondary-button">Use default</button></div>
-          <p class="source-note">Default body: user-provided Man Running OBJ. The previous CC0 rigged human remains bundled as a fallback asset.</p>
+          <p class="source-note">Default body: user-provided Man Running OBJ with a procedural running gait.</p>
         </details>
       </aside>
     </div>
