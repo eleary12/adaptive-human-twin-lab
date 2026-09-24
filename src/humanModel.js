@@ -435,13 +435,78 @@ export function createHumanScene(container) {
   rimLight.position.set(-3, 2, -2);
   scene.add(rimLight);
 
+  const terrainGeometry = new THREE.PlaneGeometry(6.4, 6.4, 48, 48);
+  const terrainPositions = terrainGeometry.attributes.position;
+  for (let index = 0; index < terrainPositions.count; index += 1) {
+    const x = terrainPositions.getX(index);
+    const z = terrainPositions.getY(index);
+    const pathCenter = Math.sin(z * 0.72) * 0.22;
+    const pathDistance = Math.abs(x - pathCenter);
+    const terrainBlend = THREE.MathUtils.smoothstep(pathDistance, 0.5, 1.55);
+    const height = (Math.sin(x * 2.1) * 0.07 + Math.cos(z * 1.55) * 0.06 + Math.sin((x + z) * 3.2) * 0.025) * terrainBlend;
+    terrainPositions.setZ(index, height - 0.035);
+  }
+  terrainGeometry.computeVertexNormals();
   const stage = new THREE.Mesh(
-    new THREE.CircleGeometry(2.55, 80),
-    new THREE.MeshStandardMaterial({ color: "#0a2630", emissive: "#081721", roughness: 0.72, metalness: 0.12 })
+    terrainGeometry,
+    new THREE.MeshStandardMaterial({ color: "#6b4a2c", roughness: 0.96, metalness: 0 })
   );
   stage.rotation.x = -Math.PI / 2;
-  stage.position.y = -0.01;
+  stage.position.y = -0.02;
   scene.add(stage);
+
+  const pathVertices = [];
+  const pathIndices = [];
+  const pathSteps = 32;
+  for (let step = 0; step <= pathSteps; step += 1) {
+    const z = -3.1 + (step / pathSteps) * 6.2;
+    const x = Math.sin(z * 0.72) * 0.22;
+    pathVertices.push(x - 0.48, 0.005, z, x + 0.48, 0.005, z);
+    if (step < pathSteps) {
+      const offset = step * 2;
+      pathIndices.push(offset, offset + 2, offset + 1, offset + 1, offset + 2, offset + 3);
+    }
+  }
+  const pathGeometry = new THREE.BufferGeometry();
+  pathGeometry.setAttribute("position", new THREE.Float32BufferAttribute(pathVertices, 3));
+  pathGeometry.setIndex(pathIndices);
+  pathGeometry.computeVertexNormals();
+  const terrainPath = new THREE.Mesh(
+    pathGeometry,
+    new THREE.MeshStandardMaterial({ color: "#b07845", roughness: 1, polygonOffset: true, polygonOffsetFactor: -2 })
+  );
+  scene.add(terrainPath);
+
+  const terrainRocks = new THREE.Group();
+  const rockMaterial = new THREE.MeshStandardMaterial({ color: "#72523a", roughness: 0.98 });
+  [
+    [-1.35, -1.7, 0.24], [1.5, -1.25, 0.31], [-1.7, -0.25, 0.2], [1.35, 0.3, 0.26],
+    [-1.4, 1.25, 0.34], [1.7, 1.65, 0.22], [-2.2, 0.8, 0.38], [2.15, -0.55, 0.28],
+  ].forEach(([x, z, scale], index) => {
+    const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(scale, 1), rockMaterial);
+    rock.position.set(x, scale * 0.42 - 0.02, z);
+    rock.scale.set(1.25, 0.72 + (index % 3) * 0.12, 1);
+    rock.rotation.set(index * 0.37, index * 0.61, index * 0.19);
+    terrainRocks.add(rock);
+  });
+  scene.add(terrainRocks);
+
+  const terrainPlants = new THREE.Group();
+  const stemMaterial = new THREE.MeshStandardMaterial({ color: "#315f3f", roughness: 0.92 });
+  const leafMaterial = new THREE.MeshStandardMaterial({ color: "#69a65d", roughness: 0.9 });
+  [[-1.35, -1.35], [1.45, -0.85], [-1.55, 0.65], [1.55, 1.25], [-2.15, 1.55], [2.05, 0.15]].forEach(([x, z], index) => {
+    const plant = new THREE.Group();
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.04, 0.28, 8), stemMaterial);
+    stem.position.y = 0.14;
+    plant.add(stem);
+    const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(0.18 + (index % 2) * 0.05, 1), leafMaterial);
+    crown.position.y = 0.34;
+    crown.scale.set(1.25, 0.8, 1);
+    plant.add(crown);
+    plant.position.set(x, 0, z);
+    terrainPlants.add(plant);
+  });
+  scene.add(terrainPlants);
 
   const accentRing = new THREE.Mesh(
     new THREE.TorusGeometry(1.7, 0.02, 18, 100),
@@ -449,6 +514,7 @@ export function createHumanScene(container) {
   );
   accentRing.rotation.x = Math.PI / 2;
   accentRing.position.y = 0.015;
+  accentRing.visible = false;
   scene.add(accentRing);
 
   const sceneAccents = {
@@ -717,7 +783,7 @@ export function createHumanScene(container) {
       });
 
       sceneAccents.water.visible = state.athlete.scene === "water";
-      sceneAccents.trail.visible = state.athlete.scene === "trail";
+      sceneAccents.trail.visible = false;
       sceneAccents.track.visible = state.athlete.scene === "track";
       scene.fog.density = 0.045 + env.precipitationIntensity * 0.04 + (1 - env.airQuality) * 0.05;
 
@@ -734,8 +800,14 @@ export function createHumanScene(container) {
           line.geometry.setFromPoints(points);
         });
       } else if (state.athlete.scene === "trail") {
-        stage.material.color.set(env.temperature > 32 ? "#3a2714" : env.terrainGrade > 0.1 ? "#17303a" : "#24372d");
-        accentRing.material.color.set(env.temperature > 32 ? "#ffb66c" : env.terrainGrade > 0.1 ? "#8fd6ff" : "#9cf0b8");
+        const route = state.phaseIndex;
+        stage.material.color.set(route === 0 ? "#704621" : route === 1 ? "#34464a" : "#31563d");
+        terrainPath.material.color.set(route === 0 ? "#c48a4c" : route === 1 ? "#7e8178" : "#826c45");
+        rockMaterial.color.set(route === 0 ? "#875d3a" : "#536066");
+        terrainRocks.visible = route !== 2;
+        terrainPlants.visible = route === 2;
+        stemMaterial.color.set(route === 2 ? "#315f3f" : "#6d5a35");
+        leafMaterial.color.set(route === 2 ? "#69a65d" : "#a08b4f");
       } else {
         stage.material.color.set(env.precipitationType === "snow" ? "#112334" : env.precipitationType === "rain" ? "#1a2636" : "#402a1f");
         accentRing.material.color.set(env.precipitationType === "snow" ? "#a6d8ff" : env.precipitationType === "rain" ? "#7acbff" : "#ffab5b");
