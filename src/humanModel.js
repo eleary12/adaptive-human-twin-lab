@@ -551,9 +551,10 @@ export function createHumanScene(container) {
       const hasScan = Boolean(scanCache.get(state.athlete.id));
       skinGroup.visible = layers.skin;
       scanGroup.visible = layers.skin && hasScan;
-      skeletonGroup.visible = layers.skeleton;
-      jointsGroup.visible = layers.joints;
-      neuralGroup.visible = layers.neural;
+      // The procedural rig is only a fallback; never draw it beneath an imported body.
+      skeletonGroup.visible = layers.skeleton && !hasScan;
+      jointsGroup.visible = layers.joints && !hasScan;
+      neuralGroup.visible = layers.neural && !hasScan;
 
       headMesh.visible = !hasScan;
       chestMesh.visible = !hasScan;
