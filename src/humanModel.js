@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { clone as cloneSkeleton } from "three/addons/utils/SkeletonUtils.js";
 
@@ -223,8 +224,35 @@ function prepareScan(scene, targetHeight) {
   return root;
 }
 
+function prepareObj(scene, targetHeight) {
+  const bounds = new THREE.Box3().setFromObject(scene);
+  const size = new THREE.Vector3();
+  bounds.getSize(size);
+
+  // Most architectural OBJ exports are Z-up; rotate only when Z is the dominant body axis.
+  if (size.z > size.y * 1.05) {
+    scene.rotation.x = -Math.PI / 2;
+    scene.updateMatrixWorld(true);
+  }
+
+  const root = prepareScan(scene, targetHeight);
+  root.traverse((child) => {
+    if (!child.isMesh) return;
+    if (!child.geometry.attributes.normal) child.geometry.computeVertexNormals();
+    child.material = new THREE.MeshStandardMaterial({
+      color: "#b98063",
+      roughness: 0.64,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.97,
+    });
+  });
+  return root;
+}
+
 export function createHumanScene(container) {
   const loader = new GLTFLoader();
+  const objLoader = new OBJLoader();
   const environmentLoader = new RGBELoader();
   const scanCache = new Map();
   const defaultScanCache = new Map();
@@ -449,10 +477,10 @@ export function createHumanScene(container) {
   return {
     async loadBuiltInHuman(athletes) {
       try {
-        const gltf = await loader.loadAsync("./assets/models/human.glb");
+        const runningModel = await objLoader.loadAsync("./assets/models/11083_Man_Running_v2.obj");
         athletes.forEach((athlete) => {
-          const root = prepareScan(gltf.scene, 1.72 * athlete.physiology.bodyScale);
-          const entry = { root, name: "CC0 rigged human", isDefault: true, clips: gltf.animations };
+          const root = prepareObj(runningModel, 1.72 * athlete.physiology.bodyScale);
+          const entry = { root, name: "Man Running OBJ", isDefault: true, clips: [] };
           defaultScanCache.set(athlete.id, entry);
           if (!scanCache.has(athlete.id)) scanCache.set(athlete.id, entry);
         });
@@ -464,17 +492,27 @@ export function createHumanScene(container) {
     },
 
     async loadAthleteScan(athlete, file) {
-      const url = URL.createObjectURL(file);
       try {
-        const gltf = await loader.loadAsync(url);
-        const root = prepareScan(gltf.scene, 1.72 * athlete.physiology.bodyScale);
-        scanCache.set(athlete.id, { root, name: file.name, clips: gltf.animations });
+        const isObj = file.name.toLowerCase().endsWith(".obj");
+        let root;
+        let clips = [];
+        if (isObj) {
+          root = prepareObj(objLoader.parse(await file.text()), 1.72 * athlete.physiology.bodyScale);
+        } else {
+          const url = URL.createObjectURL(file);
+          try {
+            const gltf = await loader.loadAsync(url);
+            root = prepareScan(gltf.scene, 1.72 * athlete.physiology.bodyScale);
+            clips = gltf.animations;
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        }
+        scanCache.set(athlete.id, { root, name: file.name, clips });
         showScan(athlete.id);
         return { ok: true, name: file.name };
       } catch (error) {
         return { ok: false, error: error instanceof Error ? error.message : "Unable to read this model file." };
-      } finally {
-        URL.revokeObjectURL(url);
       }
     },
 

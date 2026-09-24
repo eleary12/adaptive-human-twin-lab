@@ -4,6 +4,7 @@ All bundled files are stored locally so the simulation continues to work as a st
 
 ## Human model
 
+- `assets/models/11083_Man_Running_v2.obj`: user-provided running human model. Its original material file was not supplied, so the app applies a neutral procedural material. Confirm the source license permits public redistribution before publishing this asset.
 - `assets/models/human.glb`: CC0 rigged human by [Quaternius](https://quaternius.com), prepared for browser use by [UMRAM Bilkent University](https://github.com/UMRAM-Bilkent/supine-human-model). No attribution is legally required; credit is included as a courtesy.
 - Full-resolution scan reference: [Human scan by Diana Liu / Thunk3D](https://sketchfab.com/3d-models/human-a75f10c50fb44a70a1b04bcb49f3d71f), licensed CC BY 4.0. This two-million-triangle source is linked but not bundled because Sketchfab requires an authenticated download and the original is not optimized for this static viewer.
 

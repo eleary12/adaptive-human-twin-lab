@@ -2,7 +2,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const lerp = (a, b, t) => a + (b - a) * t;
 const formatSigned = (value, digits = 0) => `${value >= 0 ? "+" : ""}${value.toFixed(digits)}`;
 
-export const athletes = [
+const athleteProfiles = [
   {
     id: "rower",
     name: "Elite Rower",
@@ -256,6 +256,9 @@ export const athletes = [
     ],
   },
 ];
+
+// This test is intentionally scoped to the long-distance runner.
+export const athletes = athleteProfiles.filter((athlete) => athlete.id === "runner");
 
 const defaultHeatZones = () => ({
   head: 0.42,

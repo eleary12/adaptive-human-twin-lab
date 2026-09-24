@@ -2,9 +2,9 @@
 
 Adaptive Human Twin Lab is a static 3D web app that simulates a virtual human moving through changing environmental conditions. It visualizes:
 
-- Three athlete-specific human models: a rower, a long-distance runner, and a track sprinter
-- Nine local CC0 panoramic environment captures covering snow, fall, summer heat, desert, mountain, humid flatland, rain, and winter track exposure
-- A bundled CC0 rigged human model plus replaceable `GLB` or `GLTF` body imports
+- A long-distance runner test profile with an endurance-focused physiological model
+- Three active CC0 panoramic environments covering desert, mountain, and humid flatland running
+- A user-provided running human OBJ as the default body, with replaceable `OBJ`, `GLB`, or `GLTF` imports
 - A closed feedback loop where human strain can trigger environmental adaptation such as cooling, air support, pacing, and guidance relief
 - A layered 3D human with skin, nerves and brain, joints, and skeleton views that can be shown separately or together
 - Live controls for environment shifts, human condition shifts, and movement slow motion
@@ -29,9 +29,9 @@ Then open `http://localhost:8000`.
 
 ## Scan import
 
-Use the `Body model` panel to replace the built-in human with a `GLB` or `GLTF` scan for the currently selected athlete. A relaxed standing pose or A-pose works best as a static shell over the anatomy overlays. See `ASSET_ATTRIBUTION.md` for the bundled sources and the full-resolution scan reference.
+Use the `Body model` panel to replace the built-in human with an `OBJ`, `GLB`, or `GLTF` model for the currently selected athlete. Models are automatically normalized to athlete height; Z-up OBJ files are rotated into the viewer's Y-up coordinate system. See `ASSET_ATTRIBUTION.md` for bundled sources.
 
-The bundled body is an optimized, rigged CC0 model selected for reliable browser animation. The linked Thunk3D photogrammetry scan is intentionally not bundled because its original two-million-triangle mesh requires an authenticated download and web retopology first.
+The default OBJ is a static running pose. The earlier rigged CC0 body remains in `assets/models/human.glb` as a fallback source for future animation work.
 
 ## GitHub Pages deployment
 

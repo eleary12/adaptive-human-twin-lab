@@ -46,7 +46,8 @@
         <div class="control-header"><div><p class="eyebrow">Control station</p><h2>Shape the trial</h2></div><span class="local-badge">Local</span></div>
 
         <section class="panel-section primary-controls">
-          <label class="field compact-field"><span>Athlete</span><select id="athlete-select"></select></label>
+          <select id="athlete-select" hidden aria-label="Athlete"></select>
+          <div class="runner-test-label"><span>Active test</span><strong>Long-Distance Runner</strong></div>
           <div id="athlete-summary" class="summary-card"></div>
           <div class="button-row"><button id="play-toggle" class="primary-button">Start trial</button><button id="reset-button" class="secondary-button">Reset</button></div>
           <label class="field range-field"><span>Scenario speed <strong id="speed-value">1.0x</strong></span><input id="speed-range" type="range" min="0.5" max="3" step="0.5" value="1" /></label>
@@ -99,9 +100,9 @@
         <details class="panel-section">
           <summary><span>Body model</span><small>Built-in or custom</small></summary>
           <div id="scan-status" class="summary-card" aria-live="polite">Loading built-in human model.</div>
-          <label class="field"><span>Replace with GLB or GLTF</span><input id="scan-file" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" /></label>
+          <label class="field"><span>Replace with OBJ, GLB, or GLTF</span><input id="scan-file" type="file" accept=".obj,.glb,.gltf,model/gltf-binary,model/gltf+json" /></label>
           <div class="button-row"><button id="apply-scan" class="primary-button">Use model</button><button id="clear-scan" class="secondary-button">Use default</button></div>
-          <p class="source-note">Default model: CC0 Quaternius human, prepared by UMRAM Bilkent. <a href="https://sketchfab.com/3d-models/human-a75f10c50fb44a70a1b04bcb49f3d71f" target="_blank" rel="noreferrer">Full-resolution Thunk3D scan source</a>.</p>
+          <p class="source-note">Default body: user-provided Man Running OBJ. The previous CC0 rigged human remains bundled as a fallback asset.</p>
         </details>
       </aside>
     </div>
