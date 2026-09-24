@@ -1,5 +1,5 @@
 import { drawHeatChart, drawHistoryChart } from "./charts.js";
-import { createHumanScene } from "./humanModel.js";
+import { createHumanScene } from "./humanModel.js?v=procedural-runner";
 import {
   athletes,
   createSimulation,
@@ -10,10 +10,6 @@ import {
 } from "./simulation.js";
 
 const athleteSummary = document.querySelector("#athlete-summary");
-const scanStatus = document.querySelector("#scan-status");
-const scanFile = document.querySelector("#scan-file");
-const applyScanButton = document.querySelector("#apply-scan");
-const clearScanButton = document.querySelector("#clear-scan");
 const playToggle = document.querySelector("#play-toggle");
 const resetButton = document.querySelector("#reset-button");
 const speedRange = document.querySelector("#speed-range");
@@ -97,13 +93,6 @@ function renderAthleteSummary(simState) {
   athleteSummary.textContent = `${simState.athlete.sport}: ${simState.athlete.summary}`;
 }
 
-function renderScanStatus() {
-  const name = humanScene.getScanStatus(activeAthlete().id);
-  scanStatus.textContent = name
-    ? `Active body: ${name}`
-    : "Using the procedural body while the built-in model loads.";
-}
-
 function renderEnvironmentAssetStatus() {
   const status = humanScene.getEnvironmentStatus();
   environmentAssetStatus.textContent = status.label;
@@ -147,7 +136,6 @@ function renderEnvironmentLabel(simState) {
 function renderAll() {
   const simState = simulation.getState();
   renderAthleteSummary(simState);
-  renderScanStatus();
   renderEnvironmentAssetStatus();
   renderSegments(simState);
   renderMetricCards(metricGrid, describeState(simState));
@@ -227,18 +215,6 @@ function setAthleteDefaults(athlete) {
   humanScene.setActiveAthlete(athlete.id);
 }
 
-async function applySelectedScan() {
-  const file = scanFile.files?.[0];
-  if (!file) {
-    scanStatus.textContent = "Choose an OBJ, GLB, or GLTF body model first.";
-    return;
-  }
-  scanStatus.textContent = "Importing scan...";
-  const result = await humanScene.loadAthleteScan(activeAthlete(), file);
-  scanStatus.textContent = result.ok ? `Using imported scan: ${result.name}` : `Import failed: ${result.error}`;
-  renderAll();
-}
-
 function animationLoop(now) {
   const elapsed = Math.min((now - lastFrame) / 1000, 0.05);
   lastFrame = now;
@@ -264,16 +240,6 @@ resetButton.addEventListener("click", () => {
   syncFeedback();
   syncEnvironment();
   syncHuman();
-  renderAll();
-});
-
-applyScanButton.addEventListener("click", () => {
-  applySelectedScan();
-});
-
-clearScanButton.addEventListener("click", () => {
-  humanScene.clearAthleteScan(activeAthlete().id);
-  scanFile.value = "";
   renderAll();
 });
 

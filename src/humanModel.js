@@ -281,6 +281,117 @@ function prepareObj(scene, targetHeight) {
   return root;
 }
 
+function createProceduralRunner(targetHeight) {
+  const root = new THREE.Group();
+  const skin = new THREE.MeshStandardMaterial({ color: "#9b6048", roughness: 0.72 });
+  const kit = new THREE.MeshStandardMaterial({ color: "#1f3d36", roughness: 0.86 });
+  const shoes = new THREE.MeshStandardMaterial({ color: "#d7ff68", roughness: 0.58 });
+  const hair = new THREE.MeshStandardMaterial({ color: "#241913", roughness: 0.95 });
+  const features = new THREE.MeshStandardMaterial({ color: "#17120f", roughness: 0.8 });
+
+  const capsule = (radius, length, material) => {
+    const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 8, 18), material);
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    return mesh;
+  };
+
+  const pelvis = new THREE.Group();
+  pelvis.position.y = 0.86;
+  const pelvisMesh = new THREE.Mesh(new THREE.SphereGeometry(0.18, 24, 18), kit);
+  pelvisMesh.scale.set(1.05, 0.72, 0.86);
+  pelvis.add(pelvisMesh);
+  root.add(pelvis);
+
+  const torso = new THREE.Group();
+  torso.position.y = 1.18;
+  torso.rotation.x = 0.12;
+  const torsoMesh = capsule(0.19, 0.32, kit);
+  torsoMesh.scale.set(1.14, 1, 0.72);
+  torso.add(torsoMesh);
+  root.add(torso);
+
+  const neck = capsule(0.07, 0.05, skin);
+  neck.position.y = 1.49;
+  root.add(neck);
+
+  const head = new THREE.Group();
+  head.position.set(0, 1.65, 0.035);
+  const face = new THREE.Mesh(new THREE.SphereGeometry(0.12, 28, 22), skin);
+  face.scale.set(0.86, 1.08, 0.92);
+  head.add(face);
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.026, 14, 10), skin);
+  nose.position.set(0, 0, 0.112);
+  nose.scale.set(0.72, 0.8, 1.35);
+  head.add(nose);
+  [-0.038, 0.038].forEach((x) => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), features);
+    eye.position.set(x, 0.025, 0.109);
+    eye.scale.set(1, 0.72, 0.5);
+    head.add(eye);
+  });
+  const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.121, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.48), hair);
+  hairCap.position.y = 0.015;
+  hairCap.scale.set(0.9, 1.05, 0.94);
+  head.add(hairCap);
+  root.add(head);
+
+  const buildArm = (side) => {
+    const shoulder = new THREE.Group();
+    shoulder.position.set(side * 0.27, 1.4, 0);
+    const upper = capsule(0.065, 0.23, skin);
+    upper.position.y = -0.18;
+    shoulder.add(upper);
+    const elbow = new THREE.Group();
+    elbow.position.y = -0.36;
+    const forearm = capsule(0.055, 0.22, skin);
+    forearm.position.y = -0.17;
+    elbow.add(forearm);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 18, 14), skin);
+    hand.position.set(0, -0.35, 0);
+    hand.scale.set(0.8, 1.18, 0.72);
+    elbow.add(hand);
+    shoulder.add(elbow);
+    root.add(shoulder);
+    return { shoulder, elbow };
+  };
+
+  const buildLeg = (side) => {
+    const hip = new THREE.Group();
+    hip.position.set(side * 0.105, 0.86, 0);
+    const thigh = capsule(0.088, 0.27, skin);
+    thigh.position.y = -0.215;
+    hip.add(thigh);
+    const knee = new THREE.Group();
+    knee.position.y = -0.43;
+    const lowerLeg = capsule(0.071, 0.29, skin);
+    lowerLeg.position.y = -0.215;
+    knee.add(lowerLeg);
+    const ankle = new THREE.Group();
+    ankle.position.y = -0.43;
+    const foot = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.17, 6, 16), shoes);
+    foot.rotation.x = Math.PI / 2;
+    foot.position.set(0, -0.025, 0.085);
+    ankle.add(foot);
+    knee.add(ankle);
+    hip.add(knee);
+    root.add(hip);
+    return { hip, knee, ankle };
+  };
+
+  const leftArm = buildArm(-1);
+  const rightArm = buildArm(1);
+  const leftLeg = buildLeg(-1);
+  const rightLeg = buildLeg(1);
+  root.scale.setScalar(targetHeight / 1.78);
+  root.userData.baseY = 0;
+
+  return {
+    root,
+    rig: { torso, head, leftArm, rightArm, leftLeg, rightLeg },
+  };
+}
+
 export function createHumanScene(container) {
   const loader = new GLTFLoader();
   const objLoader = new OBJLoader();
@@ -291,6 +402,7 @@ export function createHumanScene(container) {
   let activeAthleteId = null;
   let activeScanMixer = null;
   let activeGaitUniforms = [];
+  let activeProceduralRig = null;
   let requestedEnvironmentKey = null;
   let environmentStatus = { state: "loading", label: "Loading environment" };
 
@@ -442,6 +554,7 @@ export function createHumanScene(container) {
   const clearScanGroup = () => {
     activeScanMixer = null;
     activeGaitUniforms = [];
+    activeProceduralRig = null;
     while (scanGroup.children.length) scanGroup.remove(scanGroup.children[0]);
   };
 
@@ -450,8 +563,9 @@ export function createHumanScene(container) {
     activeAthleteId = athleteId;
     const cached = scanCache.get(athleteId);
     if (!cached) return;
-    const instance = cloneSkeleton(cached.root);
+    const instance = cached.rig ? cached.root : cloneSkeleton(cached.root);
     scanGroup.add(instance);
+    activeProceduralRig = cached.rig ?? null;
     instance.traverse((child) => {
       if (!child.isMesh) return;
       const materials = Array.isArray(child.material) ? child.material : [child.material];
@@ -516,19 +630,14 @@ export function createHumanScene(container) {
 
   return {
     async loadBuiltInHuman(athletes) {
-      try {
-        const runningModel = await objLoader.loadAsync("./assets/models/11083_Man_Running_v2.obj");
-        athletes.forEach((athlete) => {
-          const root = prepareObj(runningModel, 1.72 * athlete.physiology.bodyScale);
-          const entry = { root, name: "Man Running OBJ", isDefault: true, clips: [] };
-          defaultScanCache.set(athlete.id, entry);
-          if (!scanCache.has(athlete.id)) scanCache.set(athlete.id, entry);
-        });
-        if (activeAthleteId) showScan(activeAthleteId);
-        return { ok: true };
-      } catch (error) {
-        return { ok: false, error: error instanceof Error ? error.message : "Unable to load the built-in human." };
-      }
+      athletes.forEach((athlete) => {
+        const model = createProceduralRunner(1.72 * athlete.physiology.bodyScale);
+        const entry = { ...model, name: "Generated runner", isDefault: true, clips: [] };
+        defaultScanCache.set(athlete.id, entry);
+        if (!scanCache.has(athlete.id)) scanCache.set(athlete.id, entry);
+      });
+      if (activeAthleteId) showScan(activeAthleteId);
+      return { ok: true };
     },
 
     async loadAthleteScan(athlete, file) {
@@ -675,6 +784,27 @@ export function createHumanScene(container) {
           activeGaitUniforms.forEach((uniform) => {
             uniform.value = gaitTime;
           });
+          if (activeProceduralRig) {
+            const stride = Math.sin(gaitTime * 8.4);
+            const leftPhase = stride;
+            const rightPhase = -stride;
+            const animateLeg = (leg, phase) => {
+              leg.hip.rotation.x = phase * 0.78;
+              leg.knee.rotation.x = 0.08 + Math.max(0, phase) * 1.05;
+              leg.ankle.rotation.x = -0.1 - Math.max(0, phase) * 0.28;
+            };
+            const animateArm = (arm, phase) => {
+              arm.shoulder.rotation.x = phase * 0.62;
+              arm.elbow.rotation.x = -0.58 - Math.max(0, -phase) * 0.34;
+            };
+            animateLeg(activeProceduralRig.leftLeg, leftPhase);
+            animateLeg(activeProceduralRig.rightLeg, rightPhase);
+            animateArm(activeProceduralRig.leftArm, rightPhase);
+            animateArm(activeProceduralRig.rightArm, leftPhase);
+            activeProceduralRig.torso.rotation.x = 0.12 + Math.abs(stride) * 0.025;
+            activeProceduralRig.torso.rotation.z = stride * 0.025;
+            activeProceduralRig.head.rotation.z = -stride * 0.018;
+          }
           scanRoot.rotation.y = Math.sin(gaitTime * 0.65) * 0.045;
           scanRoot.rotation.z = (1 - state.stability) * 0.06;
           scanRoot.position.y = scanRoot.userData.baseY ?? 0;

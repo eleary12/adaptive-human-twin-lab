@@ -4,7 +4,7 @@ Adaptive Human Twin Lab is a static 3D web app that simulates a virtual human mo
 
 - A long-distance runner test profile with an endurance-focused physiological model
 - Three active CC0 panoramic environments covering desert, mountain, and humid flatland running
-- A user-provided running human OBJ with a GPU-driven gait cycle, plus replaceable `OBJ`, `GLB`, or `GLTF` imports
+- A locally generated articulated runner with an alternating hip, knee, ankle, shoulder, and elbow gait cycle
 - A closed feedback loop where human strain can trigger environmental adaptation such as cooling, air support, pacing, and guidance relief
 - A layered 3D human with skin, nerves and brain, joints, and skeleton views that can be shown separately or together
 - Live controls for environment shifts, human condition shifts, and movement slow motion
@@ -27,12 +27,6 @@ python3 -m http.server 8000
 
 Then open `http://localhost:8000`.
 
-## Scan import
-
-Use the `Body model` panel to replace the built-in human with an `OBJ`, `GLB`, or `GLTF` model for the currently selected athlete. Models are automatically normalized to athlete height; Z-up OBJ files are rotated into the viewer's Y-up coordinate system. See `ASSET_ATTRIBUTION.md` for bundled sources.
-
-The default OBJ is a static running pose animated in the browser with a lightweight GPU-driven gait deformation.
-
 ## GitHub Pages deployment
 
 1. Create a new GitHub repository and push this folder.
@@ -49,7 +43,7 @@ The `.nojekyll` marker ensures GitHub Pages serves the asset folders directly wi
 - `src/simulation.js` contains the agent-based environmental response model
 - `src/humanModel.js` builds and animates the 3D human
 - `src/charts.js` renders the lightweight dashboard charts
-- `assets/` contains the local human model and environment captures
+- `assets/` contains the environment captures
 - `ASSET_ATTRIBUTION.md` records source and license details
 
 ## Notes

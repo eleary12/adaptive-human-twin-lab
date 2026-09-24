@@ -91,17 +91,10 @@
           <label class="field range-field"><span>Response speed <strong id="feedback-responsiveness-value">0.55</strong></span><input id="feedback-responsiveness" type="range" min="0" max="1" step="0.05" value="0.55" /></label>
         </details>
 
-        <details class="panel-section">
-          <summary><span>Replace body model</span><small>Advanced</small></summary>
-          <div id="scan-status" class="summary-card" aria-live="polite">Loading built-in human model.</div>
-          <label class="field"><span>Replace with OBJ, GLB, or GLTF</span><input id="scan-file" type="file" accept=".obj,.glb,.gltf,model/gltf-binary,model/gltf+json" /></label>
-          <div class="button-row"><button id="apply-scan" class="primary-button">Use model</button><button id="clear-scan" class="secondary-button">Use default</button></div>
-          <p class="source-note">Default body: user-provided Man Running OBJ with a procedural running gait.</p>
-        </details>
       </aside>
     </div>
 
     <template id="metric-template"><article class="metric-card"><span class="metric-label"></span><strong class="metric-value"></strong><p class="metric-detail"></p></article></template>
-    <script type="module" src="./src/app.js"></script>
+    <script type="module" src="./src/app.js?v=generated-human"></script>
   </body>
 </html>

@@ -4,7 +4,7 @@ All bundled files are stored locally so the simulation continues to work as a st
 
 ## Human model
 
-- `assets/models/11083_Man_Running_v2.obj`: user-provided running human model. Its original material file was not supplied, so the app applies a neutral procedural material. Confirm the source license permits public redistribution before publishing this asset.
+The runner is generated entirely in Three.js from local geometry and materials; no external human model is bundled.
 
 ## Environment captures
 
