@@ -267,7 +267,7 @@ function animationLoop(now) {
   lastFrame = now;
   if (isPlaying) {
     simulation.tick(elapsed * 22 * playbackSpeed);
-    motionClock += elapsed * 22 * playbackSpeed * motionScale;
+    motionClock += elapsed * motionScale;
   }
   renderAll();
   requestAnimationFrame(animationLoop);

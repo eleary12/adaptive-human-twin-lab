@@ -239,13 +239,52 @@ function prepareObj(scene, targetHeight) {
   root.traverse((child) => {
     if (!child.isMesh) return;
     if (!child.geometry.attributes.normal) child.geometry.computeVertexNormals();
-    child.material = new THREE.MeshStandardMaterial({
+    const gaitTime = { value: 0 };
+    const material = new THREE.MeshStandardMaterial({
       color: "#b98063",
       roughness: 0.64,
       metalness: 0.02,
       transparent: true,
       opacity: 0.97,
     });
+    material.userData.gaitTime = gaitTime;
+    material.customProgramCacheKey = () => "running-gait-v1";
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uGaitTime = gaitTime;
+      shader.vertexShader = `uniform float uGaitTime;\n${shader.vertexShader}`.replace(
+        "#include <begin_vertex>",
+        `
+          vec3 transformed = vec3(position);
+          float stride = sin(uGaitTime * 8.4);
+          float side = position.x < 0.0 ? -1.0 : 1.0;
+
+          float legWeight = (1.0 - smoothstep(-4.0, 10.0, position.z))
+            * smoothstep(5.0, 16.0, abs(position.x));
+          float legAngle = side * stride * 0.19 * legWeight;
+          vec2 legOffset = vec2(transformed.y, transformed.z + 8.0);
+          float legCos = cos(legAngle);
+          float legSin = sin(legAngle);
+          legOffset = mat2(legCos, -legSin, legSin, legCos) * legOffset;
+          transformed.y = mix(transformed.y, legOffset.x, legWeight);
+          transformed.z = mix(transformed.z, legOffset.y - 8.0, legWeight);
+
+          float footWeight = 1.0 - smoothstep(-72.0, -54.0, position.z);
+          transformed.z += max(0.0, side * stride) * 7.5 * footWeight;
+
+          float armWeight = smoothstep(12.0, 24.0, abs(position.x))
+            * smoothstep(8.0, 28.0, position.z)
+            * (1.0 - smoothstep(72.0, 88.0, position.z));
+          float armAngle = -side * stride * 0.24 * armWeight;
+          vec2 armOffset = vec2(transformed.y, transformed.z - 48.0);
+          float armCos = cos(armAngle);
+          float armSin = sin(armAngle);
+          armOffset = mat2(armCos, -armSin, armSin, armCos) * armOffset;
+          transformed.y = mix(transformed.y, armOffset.x, armWeight);
+          transformed.z = mix(transformed.z, armOffset.y + 48.0, armWeight);
+        `
+      );
+    };
+    child.material = material;
   });
   return root;
 }
@@ -259,6 +298,7 @@ export function createHumanScene(container) {
   const environmentCache = new Map();
   let activeAthleteId = null;
   let activeScanMixer = null;
+  let activeGaitUniforms = [];
   let requestedEnvironmentKey = null;
   let environmentStatus = { state: "loading", label: "Loading environment" };
 
@@ -409,6 +449,7 @@ export function createHumanScene(container) {
 
   const clearScanGroup = () => {
     activeScanMixer = null;
+    activeGaitUniforms = [];
     while (scanGroup.children.length) scanGroup.remove(scanGroup.children[0]);
   };
 
@@ -419,6 +460,13 @@ export function createHumanScene(container) {
     if (!cached) return;
     const instance = cloneSkeleton(cached.root);
     scanGroup.add(instance);
+    instance.traverse((child) => {
+      if (!child.isMesh) return;
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      materials.forEach((material) => {
+        if (material?.userData.gaitTime) activeGaitUniforms.push(material.userData.gaitTime);
+      });
+    });
     if (cached.clips?.length) {
       const preferredClip = { rower: "Working", runner: "Walk", sprinter: "Run" }[athleteId];
       const clip = cached.clips.find((item) => item.name.includes(preferredClip)) ?? cached.clips[0];
@@ -630,10 +678,14 @@ export function createHumanScene(container) {
       if (hasScan) {
         const scanRoot = scanGroup.children[0];
         if (scanRoot) {
-          activeScanMixer?.setTime((state.motionTime ?? state.time) * (state.athlete.id === "sprinter" ? 1.35 : 0.85));
-          scanRoot.rotation.y = Math.sin((state.motionTime ?? state.time) * 0.2) * 0.08;
+          const gaitTime = state.motionTime ?? state.time;
+          activeScanMixer?.setTime(gaitTime * (state.athlete.id === "sprinter" ? 1.35 : 0.85));
+          activeGaitUniforms.forEach((uniform) => {
+            uniform.value = gaitTime;
+          });
+          scanRoot.rotation.y = Math.sin(gaitTime * 0.65) * 0.045;
           scanRoot.rotation.z = (1 - state.stability) * 0.06;
-          scanRoot.position.y = (scanRoot.userData.baseY ?? 0) + Math.sin(state.time * 1.6) * 0.015;
+          scanRoot.position.y = (scanRoot.userData.baseY ?? 0) + Math.abs(Math.sin(gaitTime * 8.4)) * 0.018;
         }
       }
 

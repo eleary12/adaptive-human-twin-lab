@@ -4,7 +4,7 @@ Adaptive Human Twin Lab is a static 3D web app that simulates a virtual human mo
 
 - A long-distance runner test profile with an endurance-focused physiological model
 - Three active CC0 panoramic environments covering desert, mountain, and humid flatland running
-- A user-provided running human OBJ as the default body, with replaceable `OBJ`, `GLB`, or `GLTF` imports
+- A user-provided running human OBJ with a GPU-driven gait cycle, plus replaceable `OBJ`, `GLB`, or `GLTF` imports
 - A closed feedback loop where human strain can trigger environmental adaptation such as cooling, air support, pacing, and guidance relief
 - A layered 3D human with skin, nerves and brain, joints, and skeleton views that can be shown separately or together
 - Live controls for environment shifts, human condition shifts, and movement slow motion
