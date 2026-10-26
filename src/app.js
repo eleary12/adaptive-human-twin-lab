@@ -228,12 +228,12 @@ function animationLoop(now) {
 
 playToggle.addEventListener("click", () => {
   isPlaying = !isPlaying;
-  playToggle.textContent = isPlaying ? "Pause test" : "Start test";
+  playToggle.textContent = isPlaying ? "Pause protocol" : "Run protocol";
 });
 
 resetButton.addEventListener("click", () => {
   isPlaying = false;
-  playToggle.textContent = "Start test";
+  playToggle.textContent = "Run protocol";
   simulation.reset();
   motionClock = 0;
   syncModifiers();
