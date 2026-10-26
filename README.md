@@ -7,7 +7,8 @@ Adaptive Human Twin Lab is a static 3D web app that simulates a virtual human mo
 - A generated 3D course with an uneven landscape, curved running path, rocks, and route-specific vegetation
 - A locally generated articulated runner with an alternating hip, knee, ankle, shoulder, and elbow gait cycle
 - A closed feedback loop where human strain can trigger environmental adaptation such as cooling, air support, pacing, and guidance relief
-- A layered 3D human with skin, nerves and brain, joints, and skeleton views that can be shown separately or together
+- A refined layered 3D human with surface, muscles, brain and nerves, and skeleton views that can be shown separately or together
+- One-click course profile buttons for desert, mountain, and humid flatland environment presets
 - Live controls for environment shifts, human condition shifts, and movement slow motion
 - Cognitive performance, physical performance, endurance, hydration, oxygen efficiency, and thermal stress
 - Lightweight trend charts that work without a build pipeline

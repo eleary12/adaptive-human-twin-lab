@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=technical-console" />
+    <link rel="stylesheet" href="./styles.css?v=anatomy-layers" />
     <script type="importmap">
       { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } }
     </script>
@@ -61,6 +61,17 @@
           </details>
         </section>
 
+        <details class="panel-section anatomy-panel" open>
+          <summary><span>Body systems</span><small>04 LAYERS</small></summary>
+          <p class="panel-note">Combine anatomical systems to inspect the runner during the gait cycle.</p>
+          <div class="layer-control-grid">
+            <label class="layer-control"><input id="layer-surface" type="checkbox" checked /><span><strong>Surface</strong><small>Skin + kit</small></span><i>01</i></label>
+            <label class="layer-control"><input id="layer-muscles" type="checkbox" /><span><strong>Muscles</strong><small>Major groups</small></span><i>02</i></label>
+            <label class="layer-control"><input id="layer-nervous" type="checkbox" /><span><strong>Brain + nerves</strong><small>Neural network</small></span><i>03</i></label>
+            <label class="layer-control"><input id="layer-skeleton" type="checkbox" /><span><strong>Skeleton</strong><small>Bones + joints</small></span><i>04</i></label>
+          </div>
+        </details>
+
         <details class="panel-section">
           <summary><span>Environment overrides</span><small>08 CHANNELS</small></summary>
           <div class="control-stack">
@@ -96,6 +107,6 @@
     </div>
 
     <template id="metric-template"><article class="metric-card"><span class="metric-label"></span><strong class="metric-value"></strong><p class="metric-detail"></p></article></template>
-    <script type="module" src="./src/app.js?v=technical-console"></script>
+    <script type="module" src="./src/app.js?v=anatomy-layers"></script>
   </body>
 </html>

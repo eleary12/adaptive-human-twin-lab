@@ -1,5 +1,5 @@
 import { drawHeatChart, drawHistoryChart } from "./charts.js";
-import { createHumanScene } from "./humanModel.js?v=terrain-course";
+import { createHumanScene } from "./humanModel.js?v=anatomy-layers";
 import {
   athletes,
   createSimulation,
@@ -30,6 +30,12 @@ const metricTemplate = document.querySelector("#metric-template");
 const historyChart = document.querySelector("#history-chart");
 const heatChart = document.querySelector("#heat-chart");
 const environmentAssetStatus = document.querySelector("#environment-asset-status");
+const layerInputs = {
+  surface: document.querySelector("#layer-surface"),
+  muscles: document.querySelector("#layer-muscles"),
+  nervous: document.querySelector("#layer-nervous"),
+  skeleton: document.querySelector("#layer-skeleton"),
+};
 
 const envTemperature = document.querySelector("#env-temperature");
 const envHumidity = document.querySelector("#env-humidity");
@@ -72,7 +78,7 @@ let playbackSpeed = 1;
 let motionScale = 1;
 let motionClock = 0;
 let lastFrame = performance.now();
-const layerState = { skin: true, neural: true, joints: true, skeleton: true };
+const layerState = { surface: true, muscles: false, nervous: false, skeleton: false };
 
 function activeAthlete() {
   return athletes[0];
@@ -100,25 +106,32 @@ function renderEnvironmentAssetStatus() {
 }
 
 function renderSegments(simState) {
-  segmentList.innerHTML = "";
+  if (segmentList.children.length !== simState.athlete.segments.length) {
+    segmentList.innerHTML = "";
+    simState.athlete.segments.forEach((segment, index) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "segment-card";
+      card.setAttribute("aria-label", `Apply ${segment.name} environment profile`);
+      card.innerHTML = '<h4></h4><p></p><span class="profile-action"></span>';
+      card.addEventListener("click", () => {
+        simulation.setPhase(index);
+        renderAll();
+      });
+      segmentList.append(card);
+    });
+  }
+
   simState.athlete.segments.forEach((segment, index) => {
     const currentFlag = index === simState.phaseIndex;
     const adjustedTemp = currentFlag ? simState.environment?.temperature?.toFixed(0) : segment.temperature.toFixed(0);
     const adjustedWorkload = currentFlag ? Math.round((simState.environment?.workload ?? segment.workload) * 100) : Math.round(segment.workload * 100);
-    const card = document.createElement("button");
-    card.type = "button";
+    const card = segmentList.children[index];
     card.className = `segment-card${currentFlag ? " active" : ""}`;
     card.setAttribute("aria-pressed", String(currentFlag));
-    card.innerHTML = `
-      <h4>${segment.name}</h4>
-      <p>${segment.label} · ${adjustedTemp} C · workload ${adjustedWorkload}%</p>
-      <p>${segment.description}</p>
-    `;
-    card.addEventListener("click", () => {
-      simulation.setPhase(index);
-      renderAll();
-    });
-    segmentList.append(card);
+    card.querySelector("h4").textContent = segment.name;
+    card.querySelector("p").textContent = `${adjustedTemp} C · RH ${Math.round(segment.humidity * 100)}% · ALT ${segment.altitude} M · LOAD ${adjustedWorkload}%`;
+    card.querySelector(".profile-action").textContent = currentFlag ? "ACTIVE" : "APPLY";
   });
 }
 
@@ -207,6 +220,13 @@ function syncPlayback() {
   motionValue.textContent = `${motionScale.toFixed(2)}x`;
 }
 
+function syncLayers() {
+  Object.entries(layerInputs).forEach(([name, input]) => {
+    layerState[name] = input.checked;
+    input.closest(".layer-control").classList.toggle("active", input.checked);
+  });
+}
+
 function setAthleteDefaults(athlete) {
   humanFatigue.value = athlete.physiology.explosiveBase > 0.8 ? "0.10" : "0.06";
   humanHydration.value = "1";
@@ -271,9 +291,17 @@ resetButton.addEventListener("click", () => {
   });
 });
 
+Object.values(layerInputs).forEach((input) => {
+  input.addEventListener("change", () => {
+    syncLayers();
+    renderAll();
+  });
+});
+
 setAthleteDefaults(athletes[0]);
 simulation.reset();
 syncPlayback();
+syncLayers();
 syncModifiers();
 syncFeedback();
 syncEnvironment();

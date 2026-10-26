@@ -288,6 +288,18 @@ function createProceduralRunner(targetHeight) {
   const shoes = new THREE.MeshStandardMaterial({ color: "#d7ff68", roughness: 0.58 });
   const hair = new THREE.MeshStandardMaterial({ color: "#241913", roughness: 0.95 });
   const features = new THREE.MeshStandardMaterial({ color: "#17120f", roughness: 0.8 });
+  const muscle = new THREE.MeshStandardMaterial({ color: "#c43d35", emissive: "#42100e", emissiveIntensity: 0.18, roughness: 0.72, transparent: true, opacity: 0.9 });
+  const bone = new THREE.MeshStandardMaterial({ color: "#e8e2cf", emissive: "#39372f", emissiveIntensity: 0.08, roughness: 0.58 });
+  const nerve = new THREE.MeshStandardMaterial({ color: "#ffd75f", emissive: "#ffb400", emissiveIntensity: 0.85, roughness: 0.38 });
+  const brain = new THREE.MeshStandardMaterial({ color: "#ff8f79", emissive: "#d94464", emissiveIntensity: 0.38, roughness: 0.62 });
+  const anatomyLayers = { surface: [], muscles: [], nervous: [], skeleton: [] };
+  const surfaceMaterials = [skin, kit, shoes, hair, features];
+
+  const attach = (parent, mesh, layer = "surface") => {
+    parent.add(mesh);
+    anatomyLayers[layer].push(mesh);
+    return mesh;
+  };
 
   const capsule = (radius, length, material) => {
     const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 8, 18), material);
@@ -300,7 +312,13 @@ function createProceduralRunner(targetHeight) {
   pelvis.position.y = 0.86;
   const pelvisMesh = new THREE.Mesh(new THREE.SphereGeometry(0.18, 24, 18), kit);
   pelvisMesh.scale.set(1.05, 0.72, 0.86);
-  pelvis.add(pelvisMesh);
+  attach(pelvis, pelvisMesh);
+  const gluteMuscle = new THREE.Mesh(new THREE.SphereGeometry(0.155, 20, 16), muscle);
+  gluteMuscle.scale.set(1.02, 0.66, 0.82);
+  attach(pelvis, gluteMuscle, "muscles");
+  const pelvisBone = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.018, 10, 30), bone);
+  pelvisBone.rotation.x = Math.PI / 2;
+  attach(pelvis, pelvisBone, "skeleton");
   root.add(pelvis);
 
   const torso = new THREE.Group();
@@ -308,49 +326,115 @@ function createProceduralRunner(targetHeight) {
   torso.rotation.x = 0.12;
   const torsoMesh = capsule(0.19, 0.32, kit);
   torsoMesh.scale.set(1.14, 1, 0.72);
-  torso.add(torsoMesh);
+  attach(torso, torsoMesh);
+  const chestMuscle = capsule(0.165, 0.28, muscle);
+  chestMuscle.scale.set(1.1, 0.96, 0.68);
+  attach(torso, chestMuscle, "muscles");
+  const spine = capsule(0.024, 0.34, bone);
+  spine.position.z = -0.035;
+  attach(torso, spine, "skeleton");
+  [-0.11, -0.055, 0, 0.055, 0.11].forEach((y) => {
+    const rib = new THREE.Mesh(new THREE.TorusGeometry(0.115 - Math.abs(y) * 0.16, 0.009, 8, 26), bone);
+    rib.rotation.x = Math.PI / 2;
+    rib.position.y = y;
+    rib.scale.y = 0.72;
+    attach(torso, rib, "skeleton");
+  });
+  const spinalCord = capsule(0.009, 0.38, nerve);
+  spinalCord.position.z = -0.002;
+  attach(torso, spinalCord, "nervous");
   root.add(torso);
 
   const neck = capsule(0.07, 0.05, skin);
   neck.position.y = 1.49;
-  root.add(neck);
+  attach(root, neck);
+  const neckBone = capsule(0.024, 0.07, bone);
+  neckBone.position.y = 1.49;
+  attach(root, neckBone, "skeleton");
+  const neckNerve = capsule(0.008, 0.08, nerve);
+  neckNerve.position.y = 1.49;
+  attach(root, neckNerve, "nervous");
 
   const head = new THREE.Group();
   head.position.set(0, 1.65, 0.035);
   const face = new THREE.Mesh(new THREE.SphereGeometry(0.12, 28, 22), skin);
   face.scale.set(0.86, 1.08, 0.92);
-  head.add(face);
+  attach(head, face);
   const nose = new THREE.Mesh(new THREE.SphereGeometry(0.026, 14, 10), skin);
   nose.position.set(0, 0, 0.112);
   nose.scale.set(0.72, 0.8, 1.35);
-  head.add(nose);
+  attach(head, nose);
   [-0.038, 0.038].forEach((x) => {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), features);
     eye.position.set(x, 0.025, 0.109);
     eye.scale.set(1, 0.72, 0.5);
-    head.add(eye);
+    attach(head, eye);
   });
   const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.121, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.48), hair);
   hairCap.position.y = 0.015;
   hairCap.scale.set(0.9, 1.05, 0.94);
-  head.add(hairCap);
+  attach(head, hairCap);
+  const skullMaterial = bone.clone();
+  skullMaterial.wireframe = true;
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(0.095, 20, 16), skullMaterial);
+  skull.scale.set(0.86, 1.03, 0.9);
+  attach(head, skull, "skeleton");
+  const brainMesh = new THREE.Mesh(new THREE.SphereGeometry(0.073, 22, 18), brain);
+  brainMesh.position.y = 0.012;
+  brainMesh.scale.set(0.9, 0.82, 0.9);
+  attach(head, brainMesh, "nervous");
   root.add(head);
 
   const buildArm = (side) => {
     const shoulder = new THREE.Group();
     shoulder.position.set(side * 0.27, 1.4, 0);
+    const shoulderCap = new THREE.Mesh(new THREE.SphereGeometry(0.072, 18, 14), skin);
+    shoulderCap.scale.set(1, 0.92, 0.92);
+    attach(shoulder, shoulderCap);
     const upper = capsule(0.065, 0.23, skin);
     upper.position.y = -0.18;
-    shoulder.add(upper);
+    upper.scale.set(1, 1, 0.92);
+    attach(shoulder, upper);
+    const upperMuscle = capsule(0.052, 0.22, muscle);
+    upperMuscle.position.y = -0.18;
+    upperMuscle.scale.set(1.08, 1, 0.9);
+    attach(shoulder, upperMuscle, "muscles");
+    const humerus = capsule(0.018, 0.26, bone);
+    humerus.position.y = -0.18;
+    attach(shoulder, humerus, "skeleton");
+    const upperNerve = capsule(0.006, 0.27, nerve);
+    upperNerve.position.set(0, -0.18, 0.018);
+    attach(shoulder, upperNerve, "nervous");
     const elbow = new THREE.Group();
     elbow.position.y = -0.36;
+    const elbowJoint = new THREE.Mesh(new THREE.SphereGeometry(0.052, 16, 12), skin);
+    attach(elbow, elbowJoint);
+    const elbowBone = new THREE.Mesh(new THREE.SphereGeometry(0.024, 14, 10), bone);
+    attach(elbow, elbowBone, "skeleton");
     const forearm = capsule(0.055, 0.22, skin);
     forearm.position.y = -0.17;
-    elbow.add(forearm);
+    forearm.scale.set(0.94, 1, 0.88);
+    attach(elbow, forearm);
+    const forearmMuscle = capsule(0.043, 0.21, muscle);
+    forearmMuscle.position.y = -0.17;
+    forearmMuscle.scale.set(1.05, 1, 0.88);
+    attach(elbow, forearmMuscle, "muscles");
+    [-0.011, 0.011].forEach((x) => {
+      const forearmBone = capsule(0.011, 0.23, bone);
+      forearmBone.position.set(x, -0.17, 0);
+      attach(elbow, forearmBone, "skeleton");
+    });
+    const forearmNerve = capsule(0.005, 0.24, nerve);
+    forearmNerve.position.set(0, -0.17, 0.014);
+    attach(elbow, forearmNerve, "nervous");
     const hand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 18, 14), skin);
     hand.position.set(0, -0.35, 0);
     hand.scale.set(0.8, 1.18, 0.72);
-    elbow.add(hand);
+    attach(elbow, hand);
+    const handBone = new THREE.Mesh(new THREE.SphereGeometry(0.035, 14, 10), bone);
+    handBone.position.set(0, -0.35, 0);
+    handBone.scale.set(0.72, 1.05, 0.58);
+    attach(elbow, handBone, "skeleton");
     shoulder.add(elbow);
     root.add(shoulder);
     return { shoulder, elbow };
@@ -359,20 +443,57 @@ function createProceduralRunner(targetHeight) {
   const buildLeg = (side) => {
     const hip = new THREE.Group();
     hip.position.set(side * 0.105, 0.86, 0);
+    const hipJoint = new THREE.Mesh(new THREE.SphereGeometry(0.09, 18, 14), skin);
+    hipJoint.scale.set(0.92, 0.88, 0.9);
+    attach(hip, hipJoint);
     const thigh = capsule(0.088, 0.27, skin);
     thigh.position.y = -0.215;
-    hip.add(thigh);
+    thigh.scale.set(1.02, 1, 0.94);
+    attach(hip, thigh);
+    const thighMuscle = capsule(0.073, 0.27, muscle);
+    thighMuscle.position.y = -0.215;
+    thighMuscle.scale.set(1.12, 1, 0.92);
+    attach(hip, thighMuscle, "muscles");
+    const femur = capsule(0.022, 0.31, bone);
+    femur.position.y = -0.215;
+    attach(hip, femur, "skeleton");
+    const sciaticNerve = capsule(0.006, 0.32, nerve);
+    sciaticNerve.position.set(0, -0.215, 0.02);
+    attach(hip, sciaticNerve, "nervous");
     const knee = new THREE.Group();
     knee.position.y = -0.43;
+    const kneeJoint = new THREE.Mesh(new THREE.SphereGeometry(0.068, 18, 14), skin);
+    kneeJoint.scale.set(0.95, 0.84, 0.92);
+    attach(knee, kneeJoint);
+    const patella = new THREE.Mesh(new THREE.SphereGeometry(0.03, 14, 10), bone);
+    patella.position.z = 0.015;
+    attach(knee, patella, "skeleton");
     const lowerLeg = capsule(0.071, 0.29, skin);
     lowerLeg.position.y = -0.215;
-    knee.add(lowerLeg);
+    lowerLeg.scale.set(0.94, 1, 0.88);
+    attach(knee, lowerLeg);
+    const calfMuscle = capsule(0.058, 0.27, muscle);
+    calfMuscle.position.set(0, -0.205, -0.01);
+    calfMuscle.scale.set(1.08, 0.98, 0.9);
+    attach(knee, calfMuscle, "muscles");
+    [-0.012, 0.012].forEach((x) => {
+      const shinBone = capsule(x < 0 ? 0.015 : 0.011, 0.31, bone);
+      shinBone.position.set(x, -0.215, 0);
+      attach(knee, shinBone, "skeleton");
+    });
+    const lowerNerve = capsule(0.005, 0.32, nerve);
+    lowerNerve.position.set(0, -0.215, 0.015);
+    attach(knee, lowerNerve, "nervous");
     const ankle = new THREE.Group();
     ankle.position.y = -0.43;
     const foot = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.17, 6, 16), shoes);
     foot.rotation.x = Math.PI / 2;
     foot.position.set(0, -0.025, 0.085);
-    ankle.add(foot);
+    attach(ankle, foot);
+    const footBone = new THREE.Mesh(new THREE.CapsuleGeometry(0.025, 0.13, 5, 12), bone);
+    footBone.rotation.x = Math.PI / 2;
+    footBone.position.set(0, -0.018, 0.07);
+    attach(ankle, footBone, "skeleton");
     knee.add(ankle);
     hip.add(knee);
     root.add(hip);
@@ -388,7 +509,7 @@ function createProceduralRunner(targetHeight) {
 
   return {
     root,
-    rig: { torso, head, leftArm, rightArm, leftLeg, rightLeg },
+    rig: { torso, head, leftArm, rightArm, leftLeg, rightLeg, anatomyLayers, surfaceMaterials },
   };
 }
 
@@ -764,12 +885,32 @@ export function createHumanScene(container) {
       };
 
       const hasScan = Boolean(scanCache.get(state.athlete.id));
-      skinGroup.visible = layers.skin;
-      scanGroup.visible = layers.skin && hasScan;
-      // The procedural rig is only a fallback; never draw it beneath an imported body.
-      skeletonGroup.visible = layers.skeleton && !hasScan;
-      jointsGroup.visible = layers.joints && !hasScan;
-      neuralGroup.visible = layers.neural && !hasScan;
+      const visibleLayers = {
+        surface: layers.surface ?? layers.skin ?? true,
+        muscles: layers.muscles ?? false,
+        nervous: layers.nervous ?? layers.neural ?? false,
+        skeleton: layers.skeleton ?? false,
+      };
+      const hasVisibleLayer = Object.values(visibleLayers).some(Boolean);
+      skinGroup.visible = hasVisibleLayer;
+      scanGroup.visible = hasVisibleLayer && hasScan;
+      skeletonGroup.visible = visibleLayers.skeleton && !hasScan;
+      jointsGroup.visible = false;
+      neuralGroup.visible = visibleLayers.nervous && !hasScan;
+
+      if (activeProceduralRig?.anatomyLayers) {
+        Object.entries(activeProceduralRig.anatomyLayers).forEach(([name, objects]) => {
+          objects.forEach((object) => {
+            object.visible = Boolean(visibleLayers[name]);
+          });
+        });
+        const showInternal = visibleLayers.muscles || visibleLayers.nervous || visibleLayers.skeleton;
+        activeProceduralRig.surfaceMaterials.forEach((material) => {
+          material.transparent = showInternal;
+          material.opacity = showInternal ? 0.2 : 1;
+          material.depthWrite = !showInternal;
+        });
+      }
 
       headMesh.visible = !hasScan;
       chestMesh.visible = !hasScan;

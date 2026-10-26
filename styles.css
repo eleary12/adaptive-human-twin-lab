@@ -115,16 +115,35 @@ h2 { margin-bottom: 0; font-size: 1rem; font-weight: 500; letter-spacing: -0.01e
 
 .segment-list { display: grid; gap: 5px; margin-top: 8px; counter-reset: course; }
 .segment-card {
-  counter-increment: course; display: grid; grid-template-columns: 26px 1fr; gap: 1px 8px;
+  counter-increment: course; display: grid; grid-template-columns: 26px 1fr auto; gap: 1px 8px; align-items: center;
   padding: 9px; border: 1px solid transparent; border-radius: 3px;
   background: rgba(255, 255, 255, 0.025); text-align: left; font-weight: 400;
 }
 .segment-card::before { content: "0" counter(course); grid-row: 1 / 3; align-self: center; color: #53656e; font: 500 0.62rem var(--mono); }
 .segment-card h4 { grid-column: 2; margin: 0; font: 500 0.7rem var(--mono); }
 .segment-card p { grid-column: 2; margin: 3px 0 0; color: var(--muted); font: 0.58rem var(--mono); line-height: 1.35; }
-.segment-card p:last-child { display: none; }
+.segment-card:hover { border-color: var(--line-strong); background: rgba(255, 255, 255, 0.045); }
+.profile-action { grid-column: 3; grid-row: 1 / 3; padding: 4px 6px; border: 1px solid var(--line-strong); border-radius: 2px; color: var(--muted); font: 500 0.52rem var(--mono); letter-spacing: 0.06em; }
 .segment-card.active { border-color: rgba(103, 217, 255, 0.55); background: rgba(103, 217, 255, 0.07); }
 .segment-card.active::before { color: var(--cyan); }
+.segment-card.active .profile-action { border-color: rgba(206, 246, 109, 0.45); color: var(--lime); }
+
+.panel-note { margin: 10px 0 0; color: var(--muted); font-size: 0.66rem; line-height: 1.4; }
+.layer-control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; }
+.layer-control {
+  position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 7px;
+  min-height: 55px; padding: 8px; border: 1px solid var(--line); border-radius: 3px;
+  background: rgba(255, 255, 255, 0.02); cursor: pointer;
+}
+.layer-control:hover { border-color: var(--line-strong); }
+.layer-control input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.layer-control span { display: grid; gap: 3px; }
+.layer-control strong { font: 500 0.62rem var(--mono); }
+.layer-control small { color: var(--muted); font-size: 0.56rem; }
+.layer-control i { display: grid; place-items: center; width: 19px; height: 19px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--muted); font: normal 0.5rem var(--mono); }
+.layer-control.active { border-color: rgba(103, 217, 255, 0.5); background: rgba(103, 217, 255, 0.07); }
+.layer-control.active strong, .layer-control.active i { color: var(--cyan); }
+.layer-control.active i { border-color: var(--cyan); box-shadow: 0 0 10px rgba(103, 217, 255, 0.2); }
 
 .button-row { gap: 7px; margin-top: 11px; }
 button { width: 100%; border: 1px solid transparent; border-radius: 3px; padding: 10px 11px; cursor: pointer; font: 600 0.65rem var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
