@@ -1,5 +1,5 @@
 import { drawHeatChart, drawHistoryChart } from "./charts.js";
-import { createHumanScene } from "./humanModel.js?v=realistic-runner";
+import { createHumanScene } from "./humanModel.js?v=organic-runner";
 import {
   athletes,
   createSimulation,

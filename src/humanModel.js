@@ -283,8 +283,8 @@ function prepareObj(scene, targetHeight) {
 
 function createProceduralRunner(targetHeight) {
   const root = new THREE.Group();
-  const skin = new THREE.MeshStandardMaterial({ color: "#9b6048", roughness: 0.72 });
-  const kit = new THREE.MeshStandardMaterial({ color: "#1f3d36", roughness: 0.86 });
+  const skin = new THREE.MeshPhysicalMaterial({ color: "#9b6048", roughness: 0.66, sheen: 0.16, sheenColor: "#c98168", clearcoat: 0.03 });
+  const kit = new THREE.MeshPhysicalMaterial({ color: "#1f3d36", roughness: 0.78, sheen: 0.08, sheenColor: "#55796e" });
   const shoes = new THREE.MeshStandardMaterial({ color: "#d7ff68", roughness: 0.58 });
   const hair = new THREE.MeshStandardMaterial({ color: "#241913", roughness: 0.95 });
   const features = new THREE.MeshStandardMaterial({ color: "#17120f", roughness: 0.8 });
@@ -319,6 +319,15 @@ function createProceduralRunner(targetHeight) {
     return mesh;
   };
 
+  const profiledSurface = (profile, depthScale, material, segments = 32) => {
+    const points = profile.map(([radius, y]) => new THREE.Vector2(radius, y));
+    const mesh = new THREE.Mesh(new THREE.LatheGeometry(points, segments), material);
+    mesh.scale.z = depthScale;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    return mesh;
+  };
+
   const pelvis = new THREE.Group();
   pelvis.position.y = 0.86;
   const pelvisMesh = ellipsoid(0.18, [1.02, 0.64, 0.78], kit);
@@ -339,13 +348,16 @@ function createProceduralRunner(targetHeight) {
   const torso = new THREE.Group();
   torso.position.y = 1.18;
   torso.rotation.x = 0.12;
-  const chest = ellipsoid(0.2, [1.2, 1.2, 0.7], kit);
-  chest.position.y = 0.09;
-  attach(torso, chest);
-  const abdomen = capsule(0.135, 0.15, kit);
-  abdomen.position.y = -0.135;
-  abdomen.scale.set(0.98, 1, 0.78);
-  attach(torso, abdomen);
+  const torsoSurface = profiledSurface([
+    [0.115, -0.3],
+    [0.138, -0.24],
+    [0.145, -0.14],
+    [0.176, -0.02],
+    [0.215, 0.12],
+    [0.228, 0.19],
+    [0.148, 0.255],
+  ], 0.62, kit, 40);
+  attach(torso, torsoSurface);
   const collar = capsule(0.052, 0.33, skin);
   collar.rotation.z = Math.PI / 2;
   collar.position.y = 0.225;
@@ -430,15 +442,16 @@ function createProceduralRunner(targetHeight) {
   const buildArm = (side) => {
     const shoulder = new THREE.Group();
     shoulder.position.set(side * 0.27, 1.4, 0);
-    const shoulderCap = ellipsoid(0.074, [1.05, 0.98, 0.94], skin, 20);
+    const shoulderCap = ellipsoid(0.061, [1.08, 1, 0.94], skin, 20);
     attach(shoulder, shoulderCap);
-    const upper = capsule(0.059, 0.235, skin);
-    upper.position.y = -0.18;
-    upper.scale.set(1.05, 1, 0.94);
+    const upper = profiledSurface([
+      [0.066, -0.015],
+      [0.069, -0.08],
+      [0.061, -0.17],
+      [0.054, -0.27],
+      [0.043, -0.35],
+    ], 0.9, skin, 28);
     attach(shoulder, upper);
-    const bicep = ellipsoid(0.058, [1.05, 1.45, 0.92], skin, 18);
-    bicep.position.set(0, -0.145, 0.009);
-    attach(shoulder, bicep);
     const upperMuscle = capsule(0.052, 0.22, muscle);
     upperMuscle.position.y = -0.18;
     upperMuscle.scale.set(1.08, 1, 0.9);
@@ -451,17 +464,18 @@ function createProceduralRunner(targetHeight) {
     attach(shoulder, upperNerve, "nervous");
     const elbow = new THREE.Group();
     elbow.position.y = -0.36;
-    const elbowJoint = ellipsoid(0.048, [0.92, 0.86, 0.9], skin, 16);
+    const elbowJoint = ellipsoid(0.04, [0.94, 0.86, 0.9], skin, 16);
     attach(elbow, elbowJoint);
     const elbowBone = new THREE.Mesh(new THREE.SphereGeometry(0.024, 14, 10), bone);
     attach(elbow, elbowBone, "skeleton");
-    const forearm = capsule(0.046, 0.235, skin);
-    forearm.position.y = -0.17;
-    forearm.scale.set(1, 1, 0.88);
+    const forearm = profiledSurface([
+      [0.043, -0.01],
+      [0.051, -0.075],
+      [0.047, -0.15],
+      [0.039, -0.25],
+      [0.031, -0.335],
+    ], 0.86, skin, 28);
     attach(elbow, forearm);
-    const forearmContour = ellipsoid(0.047, [1.02, 1.35, 0.88], skin, 18);
-    forearmContour.position.set(0, -0.115, 0.006);
-    attach(elbow, forearmContour);
     const forearmMuscle = capsule(0.043, 0.21, muscle);
     forearmMuscle.position.y = -0.17;
     forearmMuscle.scale.set(1.05, 1, 0.88);
@@ -474,14 +488,18 @@ function createProceduralRunner(targetHeight) {
     const forearmNerve = capsule(0.005, 0.24, nerve);
     forearmNerve.position.set(0, -0.17, 0.014);
     attach(elbow, forearmNerve, "nervous");
-    const hand = ellipsoid(0.055, [0.78, 1.22, 0.58], skin, 18);
+    const hand = ellipsoid(0.052, [0.82, 1.06, 0.68], skin, 20);
     hand.position.set(0, -0.35, 0);
     attach(elbow, hand);
-    [-0.025, -0.008, 0.009, 0.026].forEach((x, fingerIndex) => {
-      const finger = capsule(0.008, 0.042 - Math.abs(fingerIndex - 1.5) * 0.004, skin);
-      finger.position.set(x, -0.405, 0.004);
-      attach(elbow, finger);
+    [-0.022, -0.007, 0.008, 0.023].forEach((x) => {
+      const knuckle = ellipsoid(0.012, [0.78, 0.74, 0.62], skin, 12);
+      knuckle.position.set(x, -0.385, 0.013);
+      attach(elbow, knuckle);
     });
+    const thumb = capsule(0.011, 0.035, skin);
+    thumb.rotation.z = side * 0.65;
+    thumb.position.set(side * 0.039, -0.35, 0.01);
+    attach(elbow, thumb);
     const handBone = new THREE.Mesh(new THREE.SphereGeometry(0.035, 14, 10), bone);
     handBone.position.set(0, -0.35, 0);
     handBone.scale.set(0.72, 1.05, 0.58);
@@ -500,13 +518,14 @@ function createProceduralRunner(targetHeight) {
     shortsLeg.position.y = -0.09;
     shortsLeg.scale.set(1.04, 1, 0.92);
     attach(hip, shortsLeg);
-    const thigh = capsule(0.077, 0.285, skin);
-    thigh.position.y = -0.215;
-    thigh.scale.set(1.04, 1, 0.92);
+    const thigh = profiledSurface([
+      [0.086, -0.01],
+      [0.094, -0.1],
+      [0.088, -0.2],
+      [0.073, -0.31],
+      [0.055, -0.42],
+    ], 0.9, skin, 30);
     attach(hip, thigh);
-    const quadContour = ellipsoid(0.079, [1.05, 1.48, 0.92], skin, 20);
-    quadContour.position.set(0, -0.205, 0.012);
-    attach(hip, quadContour);
     const thighMuscle = capsule(0.073, 0.27, muscle);
     thighMuscle.position.y = -0.215;
     thighMuscle.scale.set(1.12, 1, 0.92);
@@ -519,18 +538,20 @@ function createProceduralRunner(targetHeight) {
     attach(hip, sciaticNerve, "nervous");
     const knee = new THREE.Group();
     knee.position.y = -0.43;
-    const kneeJoint = ellipsoid(0.061, [0.96, 0.82, 0.9], skin, 18);
+    const kneeJoint = ellipsoid(0.05, [0.96, 0.84, 0.9], skin, 18);
     attach(knee, kneeJoint);
     const patella = new THREE.Mesh(new THREE.SphereGeometry(0.03, 14, 10), bone);
     patella.position.z = 0.015;
     attach(knee, patella, "skeleton");
-    const lowerLeg = capsule(0.052, 0.3, skin);
-    lowerLeg.position.y = -0.215;
-    lowerLeg.scale.set(0.98, 1, 0.88);
+    const lowerLeg = profiledSurface([
+      [0.052, -0.01],
+      [0.061, -0.075],
+      [0.068, -0.15],
+      [0.058, -0.24],
+      [0.044, -0.34],
+      [0.034, -0.42],
+    ], 0.88, skin, 30);
     attach(knee, lowerLeg);
-    const calfContour = ellipsoid(0.062, [1, 1.55, 0.9], skin, 18);
-    calfContour.position.set(0, -0.165, -0.012);
-    attach(knee, calfContour);
     const calfMuscle = capsule(0.058, 0.27, muscle);
     calfMuscle.position.set(0, -0.205, -0.01);
     calfMuscle.scale.set(1.08, 0.98, 0.9);
@@ -1070,8 +1091,9 @@ export function createHumanScene(container) {
               leg.ankle.rotation.x = -0.1 - Math.max(0, phase) * 0.28;
             };
             const animateArm = (arm, phase) => {
-              arm.shoulder.rotation.x = phase * 0.62;
-              arm.elbow.rotation.x = -0.58 - Math.max(0, -phase) * 0.34;
+              arm.shoulder.rotation.x = phase * 0.55;
+              arm.shoulder.rotation.z = phase * 0.035;
+              arm.elbow.rotation.x = -1.18 - Math.max(0, -phase) * 0.22;
             };
             animateLeg(activeProceduralRig.leftLeg, leftPhase);
             animateLeg(activeProceduralRig.rightLeg, rightPhase);
